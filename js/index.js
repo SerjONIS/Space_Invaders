@@ -1,4 +1,4 @@
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', {
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'root', {
     preload: preload,
     create: create,
     update: update,
@@ -13,12 +13,12 @@ function preload() {
 
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('enemyBullet', 'assets//enemy-bullet.png');
-    game.load.image('invaderSt', 'assets/invader.png');
+    game.load.image('bulletBig', 'assets//bulletBig.png');
+    game.load.image('invaderMain', 'assets/invader.png');
     game.load.spritesheet('invader', 'assets/invader32x32x4.png', 32, 32);
     game.load.image('ship', 'assets/player.png');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
     game.load.image('starfield', 'assets/starfield.png');
-    game.load.image('background', 'assets/background2.png');
 
 }
 
@@ -35,6 +35,7 @@ var scoreString = '';
 var scoreText;
 var lives;
 var enemyBullet;
+var bulletBig;
 var firingTimer = 0;
 var stateText;
 var livingEnemies = [];
@@ -61,10 +62,19 @@ function create() {
     enemyBullets.enableBody = true;
     enemyBullets.physicsBodyType = Phaser.Physics.ARCADE;
     enemyBullets.createMultiple(30, 'enemyBullet');
-    enemyBullets.setAll('anchor.x', -0.5);
-    enemyBullets.setAll('anchor.y', -0.5);
+    enemyBullets.setAll('anchor.x', 0.5);
+    enemyBullets.setAll('anchor.y', 1);
     enemyBullets.setAll('outOfBoundsKill', true);
     enemyBullets.setAll('checkWorldBounds', true);
+
+    bulletBig = game.add.group();
+    bulletBig.enableBody = true;
+    bulletBig.physicsBodyType = Phaser.Physics.ARCADE;
+    bulletBig.createMultiple(30, 'bulletBig');
+    bulletBig.setAll('anchor.x', 0.5);
+    bulletBig.setAll('anchor.y', 1);
+    bulletBig.setAll('outOfBoundsKill', true);
+    bulletBig.setAll('checkWorldBounds', true);
 
     //  The hero!
     player = game.add.sprite(400, 500, 'ship');
@@ -112,17 +122,29 @@ function create() {
 
 function createAliens () {
 
-            var alien = aliens.create(getRandom(40, 600), 50, 'invader');
-            alien.anchor.setTo(0.5, 0.5);
-            alien.animations.add('fly', [ 0, 1, 2, 3 ], 20, true);
-            alien.play('fly');
-            alien.body.moves = false;
+    for (var y = 0; y < 3; y++)
+    {
+        for (var x = 0; x < 10; x++)
+        {
+            if (y === 0) {
+                var alienMain = aliens.create(x * 48, y * 50, 'invaderMain');
+                alienMain.anchor.setTo(0.5, 0.5);
+                alienMain.body.moves = false;
+            } else {
+                var alien = aliens.create(x * 48, y * 50, 'invader');
+                alien.anchor.setTo(0.5, 0.5);
+                alien.animations.add('fly', [0, 1, 2, 3], 20, true);
+                alien.play('fly');
+                alien.body.moves = false;
+            }
+        }
+    }
 
     aliens.x = 100;
-    aliens.y = -30;
+    aliens.y = 50;
 
     //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
-    var tween = game.add.tween(aliens).to( { x: 100 }, 10, Phaser.Easing.Linear.None, true, 0, 2000, true);
+    var tween = game.add.tween(aliens).to( { x: 200 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
 
     //  When the tween loops it calls descend
     tween.onLoop.add(descend, this);
@@ -138,7 +160,7 @@ function setupInvader (invader) {
 
 function descend() {
 
-    aliens.y += 1;
+    aliens.y += 10;
 
 }
 
@@ -266,10 +288,10 @@ function enemyFires () {
     if (enemyBullet && livingEnemies.length > 0)
     {
 
-        var random=game.rnd.integerInRange(0,livingEnemies.length-1);
+        var random = game.rnd.integerInRange(0,livingEnemies.length-1);
 
         // randomly select one of them
-        var shooter=livingEnemies[random];
+        var shooter = livingEnemies[random];
         // And fire the bullet from this enemy
         enemyBullet.reset(shooter.body.x, shooter.body.y);
 
