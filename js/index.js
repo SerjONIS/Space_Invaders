@@ -1,8 +1,7 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'root', {
     preload: preload,
     create: create,
-    update: update,
-    render: render
+    update: update
 });
 
 function getRandom(min, max) {
@@ -21,9 +20,10 @@ function preload() {
     game.load.image('starfield', 'assets/starfield.png');
 
 }
-
+var lox = true;
 var player;
 var aliens;
+var aliensBig;
 var bullets;
 var bulletTime = 0;
 var cursors;
@@ -37,8 +37,11 @@ var lives;
 var enemyBullet;
 var bulletBig;
 var firingTimer = 0;
+var firingTimerBig = 0;
 var stateText;
 var livingEnemies = [];
+var livingEnemiesBig = [];
+var flag1 = true;
 
 function create() {
 
@@ -67,14 +70,14 @@ function create() {
     enemyBullets.setAll('outOfBoundsKill', true);
     enemyBullets.setAll('checkWorldBounds', true);
 
-    bulletBig = game.add.group();
-    bulletBig.enableBody = true;
-    bulletBig.physicsBodyType = Phaser.Physics.ARCADE;
-    bulletBig.createMultiple(30, 'bulletBig');
-    bulletBig.setAll('anchor.x', 0.5);
-    bulletBig.setAll('anchor.y', 1);
-    bulletBig.setAll('outOfBoundsKill', true);
-    bulletBig.setAll('checkWorldBounds', true);
+    bulletsBig = game.add.group();
+    bulletsBig.enableBody = true;
+    bulletsBig.physicsBodyType = Phaser.Physics.ARCADE;
+    bulletsBig.createMultiple(30, 'bulletBig');
+    bulletsBig.setAll('anchor.x', 0.5);
+    bulletsBig.setAll('anchor.y', 1);
+    bulletsBig.setAll('outOfBoundsKill', true);
+    bulletsBig.setAll('checkWorldBounds', true);
 
     //  The hero!
     player = game.add.sprite(400, 500, 'ship');
@@ -86,7 +89,12 @@ function create() {
     aliens.enableBody = true;
     aliens.physicsBodyType = Phaser.Physics.ARCADE;
 
+    aliensBig = game.add.group();
+    aliensBig.enableBody = true;
+    aliensBig.physicsBodyType = Phaser.Physics.ARCADE;
+
     createAliens();
+    createAliensBig();
 
     //  The score
     scoreString = 'Score : ';
@@ -122,21 +130,16 @@ function create() {
 
 function createAliens () {
 
-    for (var y = 0; y < 3; y++)
+    for (var y = 0; y < 2; y++)
     {
         for (var x = 0; x < 10; x++)
         {
-            if (y === 0) {
-                var alienMain = aliens.create(x * 48, y * 50, 'invaderMain');
-                alienMain.anchor.setTo(0.5, 0.5);
-                alienMain.body.moves = false;
-            } else {
-                var alien = aliens.create(x * 48, y * 50, 'invader');
-                alien.anchor.setTo(0.5, 0.5);
-                alien.animations.add('fly', [0, 1, 2, 3], 20, true);
-                alien.play('fly');
-                alien.body.moves = false;
-            }
+            var alien = aliens.create(x * 48, y * 50, 'invader');
+            alien.anchor.setTo(0.5, 0.5);
+            alien.animations.add('fly', [0, 1, 2, 3], 20, true);
+            alien.play('fly');
+            alien.body.moves = false;
+
         }
     }
 
@@ -150,6 +153,29 @@ function createAliens () {
     tween.onLoop.add(descend, this);
 }
 
+function createAliensBig () {
+
+    for (var y = 0; y < 1; y++)
+    {
+        for (var x = 0; x < 10; x++)
+        {
+            var alienMain = aliensBig.create(x * 48, y * 50, 'invaderMain');
+            alienMain.anchor.setTo(0.5, 0.5);
+            alienMain.body.moves = false;
+
+        }
+    }
+
+    aliensBig.x = 100;
+    aliensBig.y = 15;
+
+    //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
+    var tween = game.add.tween(aliensBig).to( { x: 200 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+
+    //  When the tween loops it calls descend
+    tween.onLoop.add(descendBig, this);
+}
+
 function setupInvader (invader) {
 
     invader.anchor.x = 0.5;
@@ -161,6 +187,12 @@ function setupInvader (invader) {
 function descend() {
 
     aliens.y += 10;
+
+}
+
+function descendBig() {
+
+    aliensBig.y += 10;
 
 }
 
@@ -193,20 +225,17 @@ function update() {
         {
             enemyFires();
         }
+        if (game.time.now > firingTimerBig)
+        {
+            bigEnemyFires();
+        }
 
         //  Run collision
         game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
+        game.physics.arcade.overlap(bullets, aliensBig, collisionHandler, null, this);
         game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);
+        game.physics.arcade.overlap(bulletsBig, player, enemyHitsPlayer, null, this);
     }
-
-}
-
-function render() {
-
-    // for (var i = 0; i < aliens.length; i++)
-    // {
-    //     game.debug.body(aliens.children[i]);
-    // }
 
 }
 
@@ -225,12 +254,13 @@ function collisionHandler (bullet, alien) {
     explosion.reset(alien.body.x, alien.body.y);
     explosion.play('kaboom', 30, false, true);
 
-    if (aliens.countLiving() == 0)
+    if (aliens.countLiving() == 0 && aliensBig.countLiving() == 0)
     {
         score += 1000;
         scoreText.text = scoreString + score;
 
         enemyBullets.callAll('kill',this);
+        bulletsBig.callAll('kill',this);
         stateText.text = " You Won, \n Click to restart";
         stateText.visible = true;
 
@@ -244,7 +274,7 @@ function enemyHitsPlayer (player,bullet) {
 
     bullet.kill();
 
-    live = lives.getFirstAlive();
+    var live = lives.getFirstAlive();
 
     if (live)
     {
@@ -261,6 +291,7 @@ function enemyHitsPlayer (player,bullet) {
     {
         player.kill();
         enemyBullets.callAll('kill');
+        bulletsBig.callAll('kill');
 
         stateText.text=" GAME OVER \n Click to restart";
         stateText.visible = true;
@@ -276,7 +307,7 @@ function enemyFires () {
     //  Grab the first bullet we can from the pool
     enemyBullet = enemyBullets.getFirstExists(false);
 
-    livingEnemies.length=0;
+    livingEnemies.length = 0;
 
     aliens.forEachAlive(function(alien){
 
@@ -301,6 +332,36 @@ function enemyFires () {
 
 }
 
+function bigEnemyFires () {
+
+    //  Grab the first bullet we can from the pool
+    bulletBig = bulletsBig.getFirstExists(false);
+
+    livingEnemiesBig.length = 0;
+
+    aliensBig.forEachAlive(function(alien){
+
+        // put every living enemy in an array
+        livingEnemiesBig.push(alien);
+    });
+
+
+    if (bulletBig && livingEnemiesBig.length > 0)
+    {
+
+        var random = game.rnd.integerInRange(0,livingEnemiesBig.length-1);
+
+        // randomly select one of them
+        var shooter = livingEnemiesBig[random];
+        // And fire the bullet from this enemy
+        bulletBig.reset(shooter.body.x, shooter.body.y);
+
+        game.physics.arcade.moveToObject(bulletBig,player,200);
+        firingTimerBig = game.time.now + 700;
+    }
+
+}
+
 function fireBullet () {
 
     //  To avoid them being allowed to fire too fast we set a time limit
@@ -320,13 +381,6 @@ function fireBullet () {
 
 }
 
-function resetBullet (bullet) {
-
-    //  Called if the bullet goes out of the screen
-    bullet.kill();
-
-}
-
 function restart () {
 
     //  A new level starts
@@ -335,7 +389,9 @@ function restart () {
     lives.callAll('revive');
     //  And brings the aliens back from the dead :)
     aliens.removeAll();
+    aliensBig.removeAll();
     createAliens();
+    createAliensBig();
 
     //revives the player
     player.revive();
