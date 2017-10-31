@@ -153,8 +153,14 @@ function update() {
         if (cursors.left.isDown) {
             player.body.velocity.x = -200;
         }
-        else if (cursors.right.isDown) {
+        if (cursors.right.isDown) {
             player.body.velocity.x = 200;
+        }
+        if (cursors.up.isDown) {
+            player.body.velocity.y = -200;
+        }
+        if (cursors.down.isDown) {
+            player.body.velocity.y = 200;
         }
         if (fireButton.isDown) {
             fireBullet();
