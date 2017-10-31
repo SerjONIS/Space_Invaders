@@ -1,10 +1,41 @@
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'root', {
+'use strict';
+
+let player;
+let playerBulletSpeed = 400;
+let playerBulletDelay = 200;
+let aliens;
+let bullets;
+let bulletTime = 0;
+let cursors;
+let fireButton;
+let explosions;
+let starField;
+let score = 0;
+let scoreString = '';
+let scoreText;
+let lives;
+let rockets;
+let rocketBoomDist = 100;
+let waves;
+let firingTimer = 0;
+let stateText;
+let gameWidth = 800;
+let gameHeight = 600;
+let speedOfRocket = 120;
+let speedOfWave = 200;
+let playerSpeed = 200;
+let fireDelay = 2000;
+let alienSpeed = 12000;
+let enemySpawnDelay = 80;
+let scoreToWin = 800;
+
+let game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'root', {
     preload: preload,
     create: create,
     update: update
 });
 
-function getRandom(min, max) {
+function getRandomBetween(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
@@ -17,32 +48,12 @@ function preload() {
     game.load.image('waveEnemy', 'assets/waveEnemy.png');
     game.load.image('wave', 'assets/wave.png');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
-    game.load.image('starfield', 'assets/starfield.png');
+    game.load.image('starField', 'assets/starField.png');
 }
 
-var player;
-var aliens;
-var bullets;
-var bulletTime = 0;
-var cursors;
-var fireButton;
-var explosions;
-var starfield;
-var score = 0;
-var scoreString = '';
-var scoreText;
-var lives;
-var rockets;
-var waves;
-var firingTimer = 0;
-var stateText;
-
-
 function create() {
-
     game.physics.startSystem(Phaser.Physics.ARCADE);
-
-    starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
+    starField = game.add.tileSprite(0, 0, gameWidth, gameHeight, 'starField');
 
     bullets = game.add.group();
     bullets.enableBody = true;
@@ -92,9 +103,9 @@ function create() {
     stateText.anchor.setTo(0.5, 0.5);
     stateText.visible = false;
 
-    for (var i = 0; i < 3; i++)
+    for (let i = 0; i < 3; i++)
     {
-        var ship = lives.create(game.world.width - 80 + (30 * i), 70, 'ship');
+        let ship = lives.create(game.world.width - 80 + (30 * i), 70, 'ship');
         ship.anchor.setTo(0.5, 0.5);
         ship.angle = 90;
         ship.alpha = 0.4;
@@ -109,28 +120,29 @@ function create() {
 }
 
 function createAliens () {
-    var rnd = getRandom(0, 25);
+    let rnd = getRandomBetween(0, 25);
 
     if (rnd >= 0 && rnd < 10) {
-        var alienR = aliens.create(getRandom(0, 600), 10, 'rocketEnemy');
+        let alienR = aliens.create(getRandomBetween(0, gameWidth), 10, 'rocketEnemy');
 
         alienR.anchor.setTo(0.5, 0.5);
         alienR.body.moves = false;
-        game.add.tween(alienR).to( { y: 800 }, 15000, Phaser.Easing.Linear.None, true, 0, 1000, false );
+        game.add.tween(alienR).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }
     else if (rnd >= 10 && rnd <= 12) {
-        var alienW = aliens.create(getRandom(0, 600), 10, 'waveEnemy');
+        let alienW = aliens.create(getRandomBetween(0, gameWidth), 10, 'waveEnemy');
 
         alienW.anchor.setTo(0.5, 0.5);
         alienW.body.moves = false;
-        game.add.tween(alienW).to( { y: 800 }, 15000, Phaser.Easing.Linear.None, true, 0, 1000, false );
+        game.add.tween(alienW).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }else{
-        var alien = aliens.create(getRandom(0, 600), 10, 'invader');
+        let alien = aliens.create(getRandomBetween(0, gameWidth), 10, 'invader');
+        let alienWalkOnX = alien.x + 50;
 
         alien.anchor.setTo(0.5, 0.5);
         alien.body.moves = false;
-        game.add.tween(alien).to( { x: (alien.x + 50) }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
-        game.add.tween(alien).to( { y: 800 }, 15000, Phaser.Easing.Linear.None, true, 0, 1000, false );
+        game.add.tween(alien).to( { x: alienWalkOnX }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+        game.add.tween(alien).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }
 }
 
@@ -141,25 +153,25 @@ function setupInvader (invader) {
 }
 
 function update() {
-    if (getRandom(0, 80) === 5) createAliens();
+    if (getRandomBetween(0, enemySpawnDelay) === 5) createAliens();
 
-    starfield.tilePosition.y += 2;
+    starField.tilePosition.y += 2;
 
     if (player.alive) {
         player.body.velocity.setTo(0, 0);
 
         if (cursors.left.isDown && (player.x > 20) ) {
 
-            player.body.velocity.x = -200;
+            player.body.velocity.x = -playerSpeed;
         }
         if (cursors.right.isDown && (player.x < game.world.width - 20) ) {
-            player.body.velocity.x = 200;
+            player.body.velocity.x = playerSpeed;
         }
         if (cursors.up.isDown && (player.y > 0) ) {
-            player.body.velocity.y = -200;
+            player.body.velocity.y = -playerSpeed;
         }
         if (cursors.down.isDown && (player.y < game.world.height - 30) ) {
-            player.body.velocity.y = 200;
+            player.body.velocity.y = playerSpeed;
         }
         if (fireButton.isDown) {
             fireBullet();
@@ -174,20 +186,19 @@ function update() {
     }
 
     aliens.forEachAlive(function (item) {
-        if (item.y > 600) {
+        if (item.y > gameHeight) {
             item.kill();
             gameOwer();
         }
     });
 
     rockets.forEachAlive(function (item) {
-        if (game.physics.arcade.distanceBetween (player, item) < 100) {
+        if (game.physics.arcade.distanceBetween (player, item) < rocketBoomDist) {
             explosion(item);
             item.kill();
             gameOwer();
         }
     });
-
 }
 
 function collisionHandler (bullet, alien) {
@@ -197,7 +208,7 @@ function collisionHandler (bullet, alien) {
     scoreText.text = scoreString + score;
     explosion(alien);
 
-    if (aliens.countLiving() === 0 && score > 800) {
+    if (aliens.countLiving() === 0 && score > scoreToWin) {
         score += 1000;
         scoreText.text = scoreString + score;
         rockets.callAll('kill',this);
@@ -215,37 +226,37 @@ function enemyHitsPlayer (player,bullet) {
 }
 
 function enemyFires () {
-    var rocket = rockets.getFirstExists(false);
-    var wave = waves.getFirstExists(false);
+    let rocket = rockets.getFirstExists(false);
+    let wave = waves.getFirstExists(false);
 
     aliens.forEachAlive(function(item){
         switch (item.key) {
             case 'rocketEnemy':
                 rocket.reset(item.body.x, item.body.y);
-                game.physics.arcade.moveToObject(rocket,player,120);
+                game.physics.arcade.moveToObject(rocket,player,speedOfRocket);
                 break;
             case 'waveEnemy':
                 wave.reset(item.body.x, item.body.y);
-                game.physics.arcade.moveToXY(wave, item.body.x, 800, 200);
+                game.physics.arcade.moveToXY(wave, item.body.x, gameHeight, speedOfWave);
         }
-        firingTimer = game.time.now + 2000;
+        firingTimer = game.time.now + fireDelay;
     });
 }
 
 function fireBullet () {
     if (game.time.now > bulletTime) {
-        var bullet = bullets.getFirstExists(false);
+        let bullet = bullets.getFirstExists(false);
 
         if (bullet) {
             bullet.reset(player.x, player.y + 8);
-            bullet.body.velocity.y = -400;
-            bulletTime = game.time.now + 200;
+            bullet.body.velocity.y = -playerBulletSpeed;
+            bulletTime = game.time.now + playerBulletDelay;
         }
     }
 }
 
 function gameOwer() {
-    var live = lives.getFirstAlive(true);
+    let live = lives.getFirstAlive(true);
 
     if (live) live.kill();
 
@@ -261,7 +272,7 @@ function gameOwer() {
 }
 
 function explosion (item) {
-    var boom = explosions.getFirstExists(false);
+    let boom = explosions.getFirstExists(false);
 
     boom.reset(item.body.x, item.body.y);
     boom.play('kaboom', 30, false, true);
