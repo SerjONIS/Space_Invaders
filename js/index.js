@@ -36,8 +36,6 @@ var rockets;
 var waves;
 var firingTimer = 0;
 var stateText;
-var livingEnemies = [];
-
 
 
 function create() {
@@ -150,16 +148,17 @@ function update() {
     if (player.alive) {
         player.body.velocity.setTo(0, 0);
 
-        if (cursors.left.isDown) {
+        if (cursors.left.isDown && (player.x > 20) ) {
+
             player.body.velocity.x = -200;
         }
-        if (cursors.right.isDown) {
+        if (cursors.right.isDown && (player.x < game.world.width - 20) ) {
             player.body.velocity.x = 200;
         }
-        if (cursors.up.isDown) {
+        if (cursors.up.isDown && (player.y > 0) ) {
             player.body.velocity.y = -200;
         }
-        if (cursors.down.isDown) {
+        if (cursors.down.isDown && (player.y < game.world.height - 30) ) {
             player.body.velocity.y = 200;
         }
         if (fireButton.isDown) {
@@ -201,12 +200,12 @@ function collisionHandler (bullet, alien) {
     if (aliens.countLiving() === 0 && score === 800) {
         score += 1000;
         scoreText.text = scoreString + score;
-        enemyBullets.callAll('kill',this);
+        rockets.callAll('kill',this);
+        waves.callAll('kill',this);
         stateText.text = " You Won, \n Click to restart";
         stateText.visible = true;
         game.input.onTap.addOnce(restart,this);
     }
-    enemyFires ();
 }
 
 function enemyHitsPlayer (player,bullet) {
@@ -219,27 +218,18 @@ function enemyFires () {
     var rocket = rockets.getFirstExists(false);
     var wave = waves.getFirstExists(false);
 
-    livingEnemies.length = 0;
     aliens.forEachAlive(function(item){
-        livingEnemies.push(item);
-    });
-
-    if (livingEnemies.length > 0) {
-
-        var random = game.rnd.integerInRange(0,livingEnemies.length-1);
-        var shooter = livingEnemies[random];
-
-        switch (shooter.key) {
+        switch (item.key) {
             case 'rocketEnemy':
-                rocket.reset(shooter.body.x, shooter.body.y);
+                rocket.reset(item.body.x, item.body.y);
                 game.physics.arcade.moveToObject(rocket,player,120);
                 break;
             case 'waveEnemy':
-                wave.reset(shooter.body.x, shooter.body.y);
-                game.physics.arcade.moveToXY(wave, shooter.body.x, 800, 200);
+                wave.reset(item.body.x, item.body.y);
+                game.physics.arcade.moveToXY(wave, item.body.x, 800, 200);
         }
         firingTimer = game.time.now + 2000;
-    }
+    });
 }
 
 function fireBullet () {
