@@ -197,7 +197,7 @@ function collisionHandler (bullet, alien) {
     scoreText.text = scoreString + score;
     explosion(alien);
 
-    if (aliens.countLiving() === 0 && score === 800) {
+    if (aliens.countLiving() === 0 && score > 800) {
         score += 1000;
         scoreText.text = scoreString + score;
         rockets.callAll('kill',this);
