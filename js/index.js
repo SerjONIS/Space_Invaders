@@ -10,8 +10,8 @@ function getRandom(min, max) {
 
 function preload() {
     game.load.image('bullet', 'assets/bullet.png');
-    game.load.image('ship', 'assets/player.png');
-    game.load.image('invader', 'assets/invader.png');
+    game.load.image('ship', 'assets/playerN.png');
+    game.load.image('invader', 'assets/wave.png');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
     game.load.image('starfield', 'assets/starfield.png');
 }
@@ -61,6 +61,7 @@ function create() {
 
     player = game.add.sprite(400, 500, 'ship');
     player.anchor.setTo(0.5, 0.5);
+    player.angle = 180;
     game.physics.enable(player, Phaser.Physics.ARCADE);
 
     aliens = game.add.group();
@@ -68,8 +69,6 @@ function create() {
     aliens.physicsBodyType = Phaser.Physics.ARCADE;
     aliens.setAll('outOfBoundsKill', true);
     aliens.setAll('checkWorldBounds', true);
-
-    createAliens();
 
     scoreString = 'Score : ';
     scoreText = game.add.text(10, 10, scoreString + score, { font: '34px Arial', fill: '#fff' });
