@@ -1,6 +1,5 @@
 'use strict';
 
-let player;
 let playerBulletSpeed = 400;
 let playerBulletDelay = 200;
 let aliens;
@@ -17,7 +16,6 @@ let lives;
 let rockets;
 let rocketBoomDist = 100;
 let waves;
-let firingTimer = 0;
 let stateText;
 let gameWidth = 800;
 let gameHeight = 600;
@@ -29,25 +27,93 @@ let alienSpeed = 12000;
 let enemySpawnDelay = 80;
 let scoreToWin = 800;
 
+let playerOne, invader;
+
 let game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'root', {
     preload: preload,
     create: create,
     update: update
 });
 
-/*class Enemy {
-    constructor() {
-        this = game.add.group();
-        this.enableBody = true;
-        this.physicsBodyType = Phaser.Physics.ARCADE;
-        this.setAll('outOfBoundsKill', true);
-        this.setAll('checkWorldBounds', true);
+class Player {
+    constructor(img) {
+        this.unit = game.add.sprite(400, 500, img);
+        this.unit.anchor.setTo(0.5, 0.5);
+        this.unit.angle = 180;
+        game.physics.enable(this.unit, Phaser.Physics.ARCADE);
     }
-}*/
+    playerControls() {
+        if (this.unit.alive) {
+            this.unit.body.velocity.setTo(0, 0);
 
+            if (cursors.left.isDown && (this.unit.x > 20)) {
 
-function getRandomBetween(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+                this.unit.body.velocity.x = -playerSpeed;
+            }
+            if (cursors.right.isDown && (this.unit.x < game.world.width - 20)) {
+                this.unit.body.velocity.x = playerSpeed;
+            }
+            if (cursors.up.isDown && (this.unit.y > 0)) {
+                this.unit.body.velocity.y = -playerSpeed;
+            }
+            if (cursors.down.isDown && (this.unit.y < game.world.height - 30)) {
+                this.unit.body.velocity.y = playerSpeed;
+            }
+        }
+    }
+    fireBullet(bullets) {
+        if (game.time.now > bulletTime && fireButton.isDown) {
+            let bullet = bullets.getFirstExists(false);
+
+            if (bullet) {
+                bullet.reset(this.unit.x, this.unit.y + 8);
+                bullet.body.velocity.y = -playerBulletSpeed;
+                bulletTime = game.time.now + playerBulletDelay;
+            }
+        }
+    }
+}
+
+class Enemy {
+    constructor() {
+        this.unit = game.add.group();
+        this.unit.enableBody = true;
+        this.unit.physicsBodyType = Phaser.Physics.ARCADE;
+        this.unit.setAll('outOfBoundsKill', true);
+        this.unit.setAll('checkWorldBounds', true);
+    }
+    createEnemy(img) {
+        let alien = this.unit.create(game.rnd.integerInRange(0, gameWidth), 10, img);
+
+        alien.firingTimer = 0;
+        game.add.tween(alien).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
+        return alien;
+    }
+    enemyFire (bullets) {
+        this.unit.forEachAlive(function (item) {
+            let bullet = bullets.getFirstExists(false);
+
+            if (game.time.now > item.firingTimer) {
+                    bullet.reset(item.body.x, item.body.y);
+                    game.physics.arcade.moveToObject(bullet, playerOne.unit, speedOfRocket);
+                    item.firingTimer = game.time.now + fireDelay;
+            }
+            if (item.y > gameHeight) {
+                item.kill();
+                gameOwer();
+            }
+        });
+    }
+}
+
+class simpleEnemy extends Enemy {
+    createEnemy(img , ancX, ancY) {
+        let alien = super.createEnemy(img);
+        let alienWalkOnX = alien.x + 50;
+        alien.anchor.setTo(ancX, ancY);
+        alien.body.moves = false;
+        game.add.tween(alien).to( { x: alienWalkOnX }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+    }
 }
 
 function preload() {
@@ -93,16 +159,8 @@ function create() {
     waves.setAll('outOfBoundsKill', true);
     waves.setAll('checkWorldBounds', true);
 
-    player = game.add.sprite(400, 500, 'ship');
-    player.anchor.setTo(0.5, 0.5);
-    player.angle = 180;
-    game.physics.enable(player, Phaser.Physics.ARCADE);
-
-    aliens = game.add.group();
-    aliens.enableBody = true;
-    aliens.physicsBodyType = Phaser.Physics.ARCADE;
-    aliens.setAll('outOfBoundsKill', true);
-    aliens.setAll('checkWorldBounds', true);
+    playerOne = new Player('ship');
+    invader = new simpleEnemy();
 
     scoreString = 'Score : ';
     scoreText = game.add.text(10, 0, scoreString + score, { font: '34px Arial', fill: '#6eff60' });
@@ -116,10 +174,10 @@ function create() {
 
     for (let i = 0; i < 3; i++)
     {
-        let ship = lives.create(game.world.width - 80 + (30 * i), 70, 'ship');
-        ship.anchor.setTo(0.5, 0.5);
-        ship.angle = 90;
-        ship.alpha = 0.4;
+        let live = lives.create(game.world.width - 80 + (30 * i), 70, 'ship');
+        live.anchor.setTo(0.5, 0.5);
+        live.angle = 90;
+        live.alpha = 0.4;
     }
 
     explosions = game.add.group();
@@ -130,24 +188,24 @@ function create() {
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 }
 
-function createAliens () {
-    let rnd = getRandomBetween(0, 25);
+/*function createAliens () {
+    let rnd = game.rnd.integerInRange(0, 25);
 
     if (rnd >= 0 && rnd < 10) {
-        let alienR = aliens.create(getRandomBetween(0, gameWidth), 10, 'rocketEnemy');
+        let alienR = aliens.create(game.rnd.integerInRange(0, gameWidth), 10, 'rocketEnemy');
 
         alienR.anchor.setTo(0.5, 0.5);
         alienR.body.moves = false;
         game.add.tween(alienR).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }
     else if (rnd >= 10 && rnd <= 12) {
-        let alienW = aliens.create(getRandomBetween(0, gameWidth), 10, 'waveEnemy');
+        let alienW = aliens.create(game.rnd.integerInRange(0, gameWidth), 10, 'waveEnemy');
 
         alienW.anchor.setTo(0.5, 0.5);
         alienW.body.moves = false;
         game.add.tween(alienW).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }else{
-        let alien = aliens.create(getRandomBetween(0, gameWidth), 10, 'invader');
+        let alien = aliens.create(game.rnd.integerInRange(0, gameWidth), 10, 'invader');
         let alienWalkOnX = alien.x + 50;
 
         alien.anchor.setTo(0.5, 0.5);
@@ -155,7 +213,7 @@ function createAliens () {
         game.add.tween(alien).to( { x: alienWalkOnX }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
         game.add.tween(alien).to( { y: gameHeight + 10 }, alienSpeed, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }
-}
+}*/
 
 function setupInvader (invader) {
     invader.anchor.x = 0.5;
@@ -164,47 +222,29 @@ function setupInvader (invader) {
 }
 
 function update() {
-    if (getRandomBetween(0, enemySpawnDelay) === 5) createAliens();
+    if (game.rnd.integerInRange(0, enemySpawnDelay) === 5) {
+        invader.createEnemy('invader', 0.5, 0.5);
+    }
 
     starField.tilePosition.y += 2;
 
-    if (player.alive) {
-        player.body.velocity.setTo(0, 0);
+    playerOne.playerControls();
+    playerOne.fireBullet(bullets);
 
-        if (cursors.left.isDown && (player.x > 20) ) {
+    game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
+    game.physics.arcade.overlap(rockets, playerOne.unit, enemyHitsPlayer, null, this);
+    game.physics.arcade.overlap(waves, playerOne.unit, enemyHitsPlayer, null, this);
+    game.physics.arcade.overlap(aliens, playerOne.unit, enemyHitsPlayer, null, this);
 
-            player.body.velocity.x = -playerSpeed;
-        }
-        if (cursors.right.isDown && (player.x < game.world.width - 20) ) {
-            player.body.velocity.x = playerSpeed;
-        }
-        if (cursors.up.isDown && (player.y > 0) ) {
-            player.body.velocity.y = -playerSpeed;
-        }
-        if (cursors.down.isDown && (player.y < game.world.height - 30) ) {
-            player.body.velocity.y = playerSpeed;
-        }
-        if (fireButton.isDown) {
-            fireBullet();
-        }
-        if (game.time.now > firingTimer) {
-            enemyFires();
-        }
-        game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
-        game.physics.arcade.overlap(rockets, player, enemyHitsPlayer, null, this);
-        game.physics.arcade.overlap(waves, player, enemyHitsPlayer, null, this);
-        game.physics.arcade.overlap(aliens, player, enemyHitsPlayer, null, this);
-    }
-
-    aliens.forEachAlive(function (item) {
+/*    aliens.forEachAlive(function (item) {
         if (item.y > gameHeight) {
             item.kill();
             gameOwer();
         }
-    });
+    });*/
 
     rockets.forEachAlive(function (item) {
-        if (game.physics.arcade.distanceBetween (player, item) < rocketBoomDist) {
+        if (game.physics.arcade.distanceBetween (playerOne.unit, item) < rocketBoomDist) {
             explosion(item);
             item.kill();
             gameOwer();
@@ -236,7 +276,7 @@ function enemyHitsPlayer (player,bullet) {
     explosion(player);
 }
 
-function enemyFires () {
+/*function enemyFires () {
     let rocket = rockets.getFirstExists(false);
     let wave = waves.getFirstExists(false);
 
@@ -244,7 +284,7 @@ function enemyFires () {
         switch (item.key) {
             case 'rocketEnemy':
                 rocket.reset(item.body.x, item.body.y);
-                game.physics.arcade.moveToObject(rocket,player,speedOfRocket);
+                game.physics.arcade.moveToObject(rocket,playerOne.unit,speedOfRocket);
                 break;
             case 'waveEnemy':
                 wave.reset(item.body.x, item.body.y);
@@ -252,19 +292,7 @@ function enemyFires () {
         }
         firingTimer = game.time.now + fireDelay;
     });
-}
-
-function fireBullet () {
-    if (game.time.now > bulletTime) {
-        let bullet = bullets.getFirstExists(false);
-
-        if (bullet) {
-            bullet.reset(player.x, player.y + 8);
-            bullet.body.velocity.y = -playerBulletSpeed;
-            bulletTime = game.time.now + playerBulletDelay;
-        }
-    }
-}
+}*/
 
 function gameOwer() {
     let live = lives.getFirstAlive(true);
@@ -272,10 +300,10 @@ function gameOwer() {
     if (live) live.kill();
 
     if (lives.countLiving() < 1) {
-        if (player.alive) explosion(player);
-        player.kill();
-        rockets.callAll('kill');
-        waves.callAll('kill');
+        if (playerOne.unit.alive) explosion(playerOne.unit);
+        playerOne.unit.kill();
+        //rockets.callAll('kill');
+        //waves.callAll('kill');
         stateText.text=" GAME OVER \n Click to restart";
         stateText.visible = true;
         game.input.onTap.addOnce(restart, this);
@@ -293,7 +321,7 @@ function restart () {
     lives.callAll('revive');
     aliens.removeAll();
     createAliens();
-    player.revive();
+    playerOne.unit.revive();
     stateText.visible = false;
     score = 0;
     scoreText.text = scoreString + score;
