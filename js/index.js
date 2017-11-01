@@ -35,7 +35,7 @@ let game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'root', {
     update: update
 });
 
-class Enemy {
+/*class Enemy {
     constructor() {
         this = game.add.group();
         this.enableBody = true;
@@ -43,7 +43,7 @@ class Enemy {
         this.setAll('outOfBoundsKill', true);
         this.setAll('checkWorldBounds', true);
     }
-}
+}*/
 
 
 function getRandomBetween(min, max) {
@@ -59,7 +59,7 @@ function preload() {
     game.load.image('waveEnemy', 'assets/waveEnemy.png');
     game.load.image('wave', 'assets/wave.png');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
-    game.load.image('starField', 'assets/starField.png');
+    game.load.image('starField', 'assets/starField.jpg');
 }
 
 function create() {
