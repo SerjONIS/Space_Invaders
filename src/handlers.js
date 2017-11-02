@@ -24,6 +24,7 @@ function collisionHandler (bullet, alien) {
 
 function enemyHitsPlayer (player, enemy) {
     explosion(enemy);
+    explosion(player);
     enemy.kill();
     gameOwer();
 }

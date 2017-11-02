@@ -72,7 +72,9 @@ class MainState {
         waveEnemy.fire(waves);
 
         game.physics.arcade.overlap(bullets.unit, [invader.unit, rocketEnemy.unit, waveEnemy.unit], collisionHandler, null, this);
-        game.physics.arcade.overlap(waves.unit, playerOne.unit, enemyHitsPlayer);
+        game.physics.arcade.overlap(waves.unit, playerOne.unit, enemyHitsPlayer, null, this);
+        game.physics.arcade.overlap(playerOne.unit, [invader.unit, rocketEnemy.unit, waveEnemy.unit], enemyHitsPlayer, null, this);
+
         rockets.unit.forEachAlive(function (item) {
             if (game.physics.arcade.distanceBetween (playerOne.unit, item) < ROCKET_BOOM_DIST) {
                 explosion(item);
@@ -80,7 +82,6 @@ class MainState {
                 gameOwer();
             }
         });
-
     }
 }
 
