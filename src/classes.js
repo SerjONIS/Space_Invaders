@@ -125,7 +125,7 @@ class UI {
             scoreText.text = scoreString + score;
             rockets.unit.callAll('kill',this);
             waves.unit.callAll('kill',this);
-            stateText.text = winMasage;
+            stateText.text = winMassage;
             stateText.visible = true;
             game.input.onTap.addOnce(restart,this);
         }
