@@ -35,17 +35,6 @@ let game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'root', {
     update: update
 });
 
-class Enemy {
-    constructor() {
-        this = game.add.group();
-        this.enableBody = true;
-        this.physicsBodyType = Phaser.Physics.ARCADE;
-        this.setAll('outOfBoundsKill', true);
-        this.setAll('checkWorldBounds', true);
-    }
-}
-
-
 function getRandomBetween(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
