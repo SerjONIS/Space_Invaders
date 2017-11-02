@@ -57,14 +57,17 @@ class Enemy {
         game.add.tween(alien).to( { y: gameHeight + ENEMY_SPAWN_HEIGHT }, ALIEN_SPEED, Phaser.Easing.Linear.None, true, 0, 1000, false );
     }
     fire(bullets) {
-        let bullet = bullets.unit.getFirstExists(false);
-        this.unit.forEachAlive(function (item) {
-            if (game.time.now > item.firingTimer) {
-                bullet.reset(item.body.x, item.body.y);
-                bullets.fly(bullet, item);
-                item.firingTimer = game.time.now + FIRE_DELAY;
-            }
-        });
+        if (playerOne.unit.alive) {
+            let bullet = bullets.unit.getFirstExists(false);
+            this.unit.forEachAlive(function (item) {
+                if (game.time.now > item.firingTimer) {
+                    bullet.reset(item.body.x, item.body.y);
+                    bullets.fly(bullet, item);
+                    item.firingTimer = game.time.now + FIRE_DELAY;
+                }
+            });
+        }
+
     }
 }
 
