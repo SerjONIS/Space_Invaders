@@ -1,0 +1,50 @@
+{
+  "_bullet": {
+    "key": "bullet",
+    "url": "assets/bullet.png"
+  },
+  "_ship": {
+    "key": "ship",
+    "url": "assets/playerN.png"
+  },
+  "_invader": {
+    "key": "invader",
+    "url": "assets/invader.png"
+  },
+  "_rocketEnemy": {
+    "key": "rocketEnemy",
+    "url": "assets/rocketEnemy.png"
+  },
+  "_rocket": {
+    "key": "rocket",
+    "url": "assets/rocket.png"
+  },
+  "_waveEnemy": {
+    "key": "waveEnemy",
+    "url": "assets/waveEnemy.png"
+  },
+  "_wave": {
+    "key": "wave",
+    "url": "assets/wave.png"
+  },
+  "_kaboom": {
+    "key": "kaboom",
+    "url": "assets/explode.png"
+  },
+  "_starField": {
+    "key": "starField",
+    "url": "assets/starField.jpg"
+  },
+  "_const": {
+    "key": "const",
+    "url": "src/const.js"
+  },
+  "_classes": {
+    "key": "classes",
+    "url": "src/classes.js"
+  },
+  "_handlers": {
+    "key": "handlers",
+    "url": "src/handlers.js"
+  }
+}
