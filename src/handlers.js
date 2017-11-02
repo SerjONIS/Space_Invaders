@@ -10,39 +10,18 @@ function collisionHandler (bullet, alien) {
     score += 20;
     scoreText.text = scoreString + score;
     explosion(alien);
-
-    if (score > SCORE_TO_WIN) {
-        score += 1000;
-        scoreText.text = scoreString + score;
-        rockets.unit.callAll('kill',this);
-        waves.unit.callAll('kill',this);
-        stateText.text = " You Won, \n Click to restart";
-        stateText.visible = true;
-        game.input.onTap.addOnce(restart,this);
-    }
 }
 
 function enemyHitsPlayer (player, enemy) {
     explosion(enemy);
     explosion(player);
     enemy.kill();
-    gameOwer();
+    lifeDec();
 }
 
-function gameOwer() {
+function lifeDec() {
     let live = lives.getFirstAlive(true);
-
     if (live) live.kill();
-
-    if (lives.countLiving() < 1) {
-        if (playerOne.unit.alive) explosion(playerOne.unit);
-        playerOne.unit.kill();
-        rockets.unit.callAll('kill');
-        waves.unit.callAll('kill');
-        stateText.text=" GAME OVER \n Click to restart";
-        stateText.visible = true;
-        game.input.onTap.addOnce(restart, this);
-    }
 }
 
 function explosion (item) {
@@ -52,11 +31,23 @@ function explosion (item) {
     boom.play(conf._kaboom.key, 30, false, true);
 }
 
+function checkBounds(...enemyArr) {
+    for (let i = 0; i < enemyArr.length; i++) {
+        enemyArr[i].forEachAlive(function (item) {
+            if(item.y > GAME_HEIGHT) {
+                item.kill();
+                lifeDec();
+            }
+        });
+    }
+}
+
 function restart () {
     lives.callAll('revive');
     rocketEnemy.unit.removeAll();
     waveEnemy.unit.removeAll();
     invader.unit.removeAll();
+    playerOne.unit.reset(400, 500);
     playerOne.unit.revive();
     stateText.visible = false;
     score = 0;

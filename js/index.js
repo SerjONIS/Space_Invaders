@@ -1,9 +1,9 @@
 'use strict';
 
+const GAME_WIDTH = 800;
+const GAME_HEIGHT = 600;
 let playerOne, invader, rocketEnemy, waveEnemy, bullets, rockets, waves, conf;
-const gameWidth = 800;
-const gameHeight = 600;
-let game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'root');
+let game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.AUTO, 'root');
 
 class LoadJSON{
     preload(){
@@ -41,22 +41,26 @@ class MainState {
     }
     create() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
-        starField = game.add.tileSprite(0, 0, gameWidth, gameHeight, conf._starField.key);
+        starField = game.add.tileSprite(0, 0, GAME_WIDTH, GAME_HEIGHT, conf._starField.key);
 
         playerOne = new Player( conf._ship.key );
         invader = new Enemy( conf._invader.key );
         rocketEnemy = new Enemy( conf._rocketEnemy.key );
         waveEnemy = new Enemy( conf._waveEnemy.key );
         bullets = new Ammo ( conf._bullet.key, 0.5, 1 );
-        rockets = new Rockets( conf._rocket.key, 0.1, -0.5 );
+        rockets = new Rockets( conf._rocket.key, 0.1, -0.5 );   //свойство Anchor
         waves = new Waves( conf._wave.key, 0.15, -4 );
 
-        Handler.start();
+        UI.winText(WIN_TEXT_COLOR);
+        UI.lives(LIVE_COLOR, PLAYER_LIFES);
+        UI.score(SCORE_COLOR);
 
         cursors = game.input.keyboard.createCursorKeys();
         fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     }
     update() {
+        UI.win(WIN_MASSAGE, SCORE_TO_WIN);
+        UI.lose(LOSE_MASSAGE);
         starField.tilePosition.y += 2;
         if ( (game.rnd.integerInRange(0, ENEMY_SPAWN_DELAY) === 5)) {
             let rnd = game.rnd.integerInRange(0, 30);
@@ -79,9 +83,10 @@ class MainState {
             if (game.physics.arcade.distanceBetween (playerOne.unit, item) < ROCKET_BOOM_DIST) {
                 explosion(item);
                 item.kill();
-                gameOwer();
+                lifeDec();
             }
         });
+        checkBounds(invader.unit, rocketEnemy.unit, waveEnemy.unit);
     }
 }
 
