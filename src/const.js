@@ -28,3 +28,5 @@ const LIVE_COLOR = '#6eff60';
 const SCORE_COLOR = '#6eff60';
 const WIN_TEXT_COLOR = '#6eff60';
 const PLAYER_LIFES = 3;
+
+let playerOne, invader, rocketEnemy, waveEnemy, bullets, rockets, waves;

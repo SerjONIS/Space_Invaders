@@ -88,6 +88,15 @@ class Rockets extends Ammo {
     fly(bullet) {
         game.physics.arcade.moveToObject(bullet, playerOne.unit, SPEED_OF_ROCKET);
     }
+    detonate() {
+        this.unit.forEachAlive(function (item) {
+            if (game.physics.arcade.distanceBetween (playerOne.unit, item) < ROCKET_BOOM_DIST) {
+                explosion(item);
+                item.kill();
+                lifeDec();
+            }
+        });
+    }
 }
 
 class Waves extends Ammo {

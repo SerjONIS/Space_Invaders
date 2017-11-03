@@ -2,7 +2,7 @@
 
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
-let playerOne, invader, rocketEnemy, waveEnemy, bullets, rockets, waves, conf;
+let conf;
 let game = new Phaser.Game(GAME_WIDTH, GAME_HEIGHT, Phaser.AUTO, 'root');
 
 class LoadJSON{
@@ -61,7 +61,9 @@ class MainState {
     update() {
         UI.win(WIN_MASSAGE, SCORE_TO_WIN);
         UI.lose(LOSE_MASSAGE);
+
         starField.tilePosition.y += 2;
+
         if ( (game.rnd.integerInRange(0, ENEMY_SPAWN_DELAY) === 5)) {
             let rnd = game.rnd.integerInRange(0, 30);
             if(rnd >= 20) invader.create(INVADER_WALK_DIST);
@@ -75,17 +77,12 @@ class MainState {
         rocketEnemy.fire(rockets);
         waveEnemy.fire(waves);
 
+        rockets.detonate();
+
         game.physics.arcade.overlap(bullets.unit, [invader.unit, rocketEnemy.unit, waveEnemy.unit], collisionHandler, null, this);
         game.physics.arcade.overlap(waves.unit, playerOne.unit, enemyHitsPlayer, null, this);
         game.physics.arcade.overlap(playerOne.unit, [invader.unit, rocketEnemy.unit, waveEnemy.unit], enemyHitsPlayer, null, this);
 
-        rockets.unit.forEachAlive(function (item) {
-            if (game.physics.arcade.distanceBetween (playerOne.unit, item) < ROCKET_BOOM_DIST) {
-                explosion(item);
-                item.kill();
-                lifeDec();
-            }
-        });
         checkBounds(invader.unit, rocketEnemy.unit, waveEnemy.unit);
     }
 }
