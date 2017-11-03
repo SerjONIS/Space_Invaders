@@ -133,9 +133,13 @@ class UI {
     }
     static win(winMassage, scoreToWin) {
         if (score > scoreToWin) {
+
             scoreText.text = scoreString + score;
-            rockets.unit.callAll('kill',this);
-            waves.unit.callAll('kill',this);
+            rockets.unit.callAll('kill');
+            waves.unit.callAll('kill');
+            rocketEnemy.unit.removeAll();
+            waveEnemy.unit.removeAll();
+            invader.unit.removeAll();
             stateText.text = winMassage;
             stateText.visible = true;
             game.input.onTap.addOnce(restart,this);
@@ -143,6 +147,7 @@ class UI {
     }
     static lose(loseMassage) {
         if (lives.countLiving() < 1) {
+
             if (playerOne.unit.alive) explosion(playerOne.unit);
             playerOne.unit.kill();
             rockets.unit.callAll('kill');

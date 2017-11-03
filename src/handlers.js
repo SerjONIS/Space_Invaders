@@ -52,4 +52,5 @@ function restart () {
     stateText.visible = false;
     score = 0;
     scoreText.text = scoreString + score;
+    game.paused = false;
 }
