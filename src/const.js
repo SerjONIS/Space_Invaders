@@ -1,4 +1,3 @@
-let bulletTime = 0;
 let cursors;
 let fireButton;
 let explosions;

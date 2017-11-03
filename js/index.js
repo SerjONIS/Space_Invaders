@@ -91,8 +91,3 @@ game.state.add('LoadJSON', LoadJSON);
 game.state.add('Boot', Boot);
 game.state.add('MainState', MainState);
 game.state.start('LoadJSON');
-
-
-
-
-

@@ -3,7 +3,9 @@ class Player {
         this.unit = game.add.sprite(400, 500, img);
         this.unit.anchor.setTo(0.5, 0.5);
         this.unit.angle = 180;
+        this.bulletTime = 0;
         game.physics.enable(this.unit, Phaser.Physics.ARCADE);
+
     }
     playerControls() {
         if (this.unit.alive) {
@@ -26,12 +28,12 @@ class Player {
     }
     fireBullet(bullets) {
         let bullet = bullets.unit.getFirstExists(false);
-        if (game.time.now > bulletTime && fireButton.isDown) {
+        if (game.time.now > this.bulletTime && fireButton.isDown) {
 
             if (bullet && this.unit.alive) {
                 bullet.reset(this.unit.x, this.unit.y);
                 bullet.body.velocity.y = -PLAYER_BULLETS_SPEED;
-                bulletTime = game.time.now + PLAYER_BULLET_DELAY;
+                this.bulletTime = game.time.now + PLAYER_BULLET_DELAY;
             }
         }
     }
